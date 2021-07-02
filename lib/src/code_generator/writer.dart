@@ -43,6 +43,12 @@ class Writer {
   UniqueNamer get topLevelUniqueNamer => _topLevelUniqueNamer;
   UniqueNamer get wrapperLevelUniqueNamer => _wrapperLevelUniqueNamer;
 
+  UniqueNamer get initialTopLevelUniqueNamer => _initialTopLevelUniqueNamer;
+  UniqueNamer get initialWrapperLevelUniqueNamer =>
+      _initialWrapperLevelUniqueNamer;
+
+  String get className => _className;
+
   late String _arrayHelperClassPrefix;
 
   /// Guaranteed to be a unique prefix.
@@ -120,7 +126,7 @@ class Writer {
       }
     }
 
-    _resetUniqueNamersNamers();
+    resetUniqueNamersNamers();
   }
 
   /// Resolved name conflict using [makeUnique] and marks the result as used in
@@ -138,7 +144,7 @@ class Writer {
   }
 
   /// Resets the namers to initial state. Namers are reset before generating.
-  void _resetUniqueNamersNamers() {
+  void resetUniqueNamersNamers() {
     _topLevelUniqueNamer = _initialTopLevelUniqueNamer.clone();
     _wrapperLevelUniqueNamer = _initialWrapperLevelUniqueNamer.clone();
   }
@@ -148,7 +154,7 @@ class Writer {
     final s = StringBuffer();
 
     // Reset unique namers to initial state.
-    _resetUniqueNamersNamers();
+    resetUniqueNamersNamers();
 
     // Write file header (if any).
     if (header != null) {
