@@ -29,22 +29,22 @@ class WasmJsWriter extends Writer {
       markUsed: [initialTopLevelUniqueNamer],
     );
     _dartAsync = _resolveNameConflict(
-      name: 'dartAsync',
+      name: 'dart_async',
       makeUnique: initialTopLevelUniqueNamer,
       markUsed: [initialTopLevelUniqueNamer],
     );
     _dartConvert = _resolveNameConflict(
-      name: 'dartConvert',
+      name: 'dart_convert',
       makeUnique: initialTopLevelUniqueNamer,
       markUsed: [initialTopLevelUniqueNamer],
     );
     _dartTyped = _resolveNameConflict(
-      name: 'dartTyped',
+      name: 'dart_typed',
       makeUnique: initialTopLevelUniqueNamer,
       markUsed: [initialTopLevelUniqueNamer],
     );
     _wasmInterop = _resolveNameConflict(
-      name: 'wasmInterop',
+      name: 'wasm_interop',
       makeUnique: initialTopLevelUniqueNamer,
       markUsed: [initialTopLevelUniqueNamer],
     );
@@ -68,7 +68,7 @@ class WasmJsWriter extends Writer {
   String generate() {
     final s = StringBuffer();
 
-    // Reset unique namers to initial state.
+    // Reset unique names to initial state.
     resetUniqueNamersNamers();
 
     // Write file header (if any).
@@ -100,34 +100,32 @@ class WasmJsWriter extends Writer {
 
       // Write lookup function
       s.write('T $lookupFuncIdentifier<T>(String name) {\n');
-      s.write('  return $_wasmInstance.functions[name]! as T;\n');
+      s.write('  return $_wasmInstance.functions[name] as T;\n');
       s.write('}\n');
 
       // Instance field and constructor
       s.write('final $_wasmInterop.Instance $_wasmInstance;\n');
       s.write('$className(this._wasmInstance);\n');
 
-      /*
       for (final b in lookUpBindings) {
         s.write(b.toBindingString(this).string);
       }
-      */
 
       // Static Initializers
       s.write('\n');
-      s.write('static $className? $_wasmInstance;\n');
+      s.write('static $className? _instance;\n');
       s.write('static $className get instance {\n');
-      s.write('  assert($_wasmInstance != null,\n');
+      s.write('  assert(_instance != null,\n');
       s.write(
           '      "need to $className.init() before accessing instance");\n');
-      s.write('  return $_wasmInstance!;\n');
+      s.write('  return _instance!;\n');
       s.write('}\n');
       s.write('\n');
       s.write(
           'static Future<$className> init($_dartTyped.Uint8List moduleData) async {\n');
       s.write(
           '  final $_wasmInterop.Instance instance = await $_wasmInterop.Instance.fromBytesAsync(moduleData);\n');
-      s.write('  $_wasmInstance = $className(instance);\n');
+      s.write('  _instance = $className(instance);\n');
       s.write('  return $className.instance;\n');
       s.write('}\n');
 

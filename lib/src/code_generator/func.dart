@@ -34,7 +34,7 @@ class Func extends LookUpBinding {
   final bool exposeFunctionTypedefs;
 
   /// Contains typealias for function type if [exposeFunctionTypedefs] is true.
-  Typealias? _exposedCFunctionTypealias, _exposedDartFunctionTypealias;
+  Typealias? exposedCFunctionTypealias, exposedDartFunctionTypealias;
 
   /// [originalName] is looked up in dynamic library, if not
   /// provided, takes the value of [name].
@@ -66,11 +66,11 @@ class Func extends LookUpBinding {
     // Get function name with first letter in upper case.
     final upperCaseName = name[0].toUpperCase() + name.substring(1);
     if (exposeFunctionTypedefs) {
-      _exposedCFunctionTypealias = Typealias(
+      exposedCFunctionTypealias = Typealias(
         name: 'Native$upperCaseName',
         type: Type.functionType(functionType),
       );
-      _exposedDartFunctionTypealias = Typealias(
+      exposedDartFunctionTypealias = Typealias(
         name: 'Dart$upperCaseName',
         type: Type.functionType(functionType),
         useDartType: true,
@@ -134,10 +134,10 @@ class Func extends LookUpBinding {
     s.write('}\n');
 
     final cType = exposeFunctionTypedefs
-        ? _exposedCFunctionTypealias!.name
+        ? exposedCFunctionTypealias!.name
         : functionType.getCType(w, writeArgumentNames: false);
     final dartType = exposeFunctionTypedefs
-        ? _exposedDartFunctionTypealias!.name
+        ? exposedDartFunctionTypealias!.name
         : functionType.getDartType(w, writeArgumentNames: false);
 
     if (exposeSymbolAddress) {
@@ -165,8 +165,8 @@ class Func extends LookUpBinding {
     dependencies.add(this);
     functionType.addDependencies(dependencies);
     if (exposeFunctionTypedefs) {
-      _exposedCFunctionTypealias!.addDependencies(dependencies);
-      _exposedDartFunctionTypealias!.addDependencies(dependencies);
+      exposedCFunctionTypealias!.addDependencies(dependencies);
+      exposedDartFunctionTypealias!.addDependencies(dependencies);
     }
   }
 }
