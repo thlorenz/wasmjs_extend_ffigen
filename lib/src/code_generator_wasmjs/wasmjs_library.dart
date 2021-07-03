@@ -26,7 +26,7 @@ class WasmJsLibrary extends Library {
             dartBool: dartBool,
             sort: sort,
             packingOverride: packingOverride) {
-    // Seperate bindings which require lookup.
+    // Separate bindings which require lookup.
     final lookUpBindings = this.bindings.whereType<LookUpBinding>().toList();
     final noLookUpBindings =
         this.bindings.whereType<NoLookUpBinding>().toList();

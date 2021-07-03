@@ -99,47 +99,54 @@ class WasmJsWriter extends Writer {
     s.write(
         "import 'package:wasm_interop/wasm_interop.dart' as $_wasmInterop;\n");
 
+    if (classDocComment != null) {
+      s.write(makeDartDoc(classDocComment!));
+    }
+
+    // Write Library wrapper class
+    s.write('class $className{\n');
+    s.write('/// The symbol lookup function.\n');
+
+    // Write lookup function
+    s.write('T $lookupFuncIdentifier<T>(String name) {\n');
+    s.write('  return $_wasmInstance.functions[name] as T;\n');
+    s.write('}\n');
+
+    // Instance field and constructor
+    s.write('final $_wasmInterop.Instance $_wasmInstance;\n');
+    s.write('$className(this._wasmInstance);\n');
+
+    // Function declarations
     if (lookUpBindings.isNotEmpty) {
-      if (classDocComment != null) {
-        s.write(makeDartDoc(classDocComment!));
-      }
-
-      // Write Library wrapper classs.
-      s.write('class $className{\n');
-      s.write('/// The symbol lookup function.\n');
-
-      // Write lookup function
-      s.write('T $lookupFuncIdentifier<T>(String name) {\n');
-      s.write('  return $_wasmInstance.functions[name] as T;\n');
-      s.write('}\n');
-
-      // Instance field and constructor
-      s.write('final $_wasmInterop.Instance $_wasmInstance;\n');
-      s.write('$className(this._wasmInstance);\n');
-
       for (final b in lookUpBindings) {
         s.write(b.toBindingString(this).string);
       }
+    }
 
-      // Static Initializers
-      s.write('\n');
-      s.write('static $className? _instance;\n');
-      s.write('static $className get instance {\n');
-      s.write('  assert(_instance != null,\n');
-      s.write(
-          '      "need to $className.init() before accessing instance");\n');
-      s.write('  return _instance!;\n');
-      s.write('}\n');
-      s.write('\n');
-      s.write(
-          'static Future<$className> init($_dartTyped.Uint8List moduleData) async {\n');
-      s.write(
-          '  final $_wasmInterop.Instance instance = await $_wasmInterop.Instance.fromBytesAsync(moduleData);\n');
-      s.write('  _instance = $className(instance);\n');
-      s.write('  return $className.instance;\n');
-      s.write('}\n');
+    // Static Initializers
+    s.write('\n');
+    s.write('static $className? _instance;\n');
+    s.write('static $className get instance {\n');
+    s.write('  assert(_instance != null,\n');
+    s.write('      "need to $className.init() before accessing instance");\n');
+    s.write('  return _instance!;\n');
+    s.write('}\n');
+    s.write('\n');
+    s.write(
+        'static Future<$className> init($_dartTyped.Uint8List moduleData) async {\n');
+    s.write(
+        '  final $_wasmInterop.Instance instance = await $_wasmInterop.Instance.fromBytesAsync(moduleData);\n');
+    s.write('  _instance = $className(instance);\n');
+    s.write('  return $className.instance;\n');
+    s.write('}\n');
 
-      s.write('}\n\n');
+    s.write('}\n\n');
+
+    // Struct declarations
+    if (noLookUpBindings.isNotEmpty) {
+      for (final b in noLookUpBindings) {
+        s.write(b.toBindingString(this).string);
+      }
     }
 
     writePointerAndOpaque(s);

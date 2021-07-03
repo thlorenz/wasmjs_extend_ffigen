@@ -166,9 +166,10 @@ class WasmJsFunctionType {
   }
 
   void addDependencies(Set<Binding> dependencies) {
-    returnType.addDependencies(dependencies);
-    for (final p in parameters) {
-      p.type.addDependencies(dependencies);
-    }
+    // TODO(thlorenz): causes structs we added as WasmJsStruct to be added again as Struc
+    // returnType.addDependencies(dependencies);
+    // for (final p in parameters) {
+    //   p.type.addDependencies(dependencies);
+    // }
   }
 }
