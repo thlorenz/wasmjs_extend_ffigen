@@ -53,15 +53,14 @@ class WasmJsFunc extends LookUpBinding {
     // -----------------
     // Enclosing Function
     // -----------------
-    if (w.dartBool &&
-        functionType.returnType.getBaseTypealiasType().broadType ==
-            BroadType.Boolean) {
-      // Use bool return type in enclosing function.
-      s.write('bool $enclosingFuncName(\n');
-    } else {
-      s.write(
-          '${functionType.returnType.getWasmJsDartType(w)} $enclosingFuncName(\n');
-    }
+
+    final returnType = (w.dartBool &&
+            functionType.returnType.getBaseTypealiasType().broadType ==
+                BroadType.Boolean)
+        ? 'bool'
+        : functionType.returnType.getWasmJsDartType(w);
+    s.write('$returnType $enclosingFuncName(\n');
+
     // Input params
     for (final p in functionType.parameters) {
       if (w.dartBool &&
@@ -74,25 +73,18 @@ class WasmJsFunc extends LookUpBinding {
     }
 
     // Function body
+    final returnOpen = functionType.returnType.getWasmJsReturnWrapOpen(w);
+    final returnClose = functionType.returnType.getWasmJsReturnWrapClose(w);
     s.write(') {\n');
-    s.write('return $funcVarName');
+
+    s.write('return $returnOpen$funcVarName');
 
     s.write('(\n');
     for (final p in functionType.parameters) {
-      if (w.dartBool &&
-          p.type.getBaseTypealiasType().broadType == BroadType.Boolean) {
-        // Convert bool parameter to int before calling.
-        s.write('    ${p.name}?1:0,\n');
-      } else {
-        s.write('    ${p.name},\n');
-      }
+      final resolution = p.type.getWasmJsParameterResolution(w);
+      s.write('    ${p.name}$resolution,\n');
     }
-    if (w.dartBool && functionType.returnType.broadType == BroadType.Boolean) {
-      // Convert int return type to bool.
-      s.write('  )!=0;\n');
-    } else {
-      s.write('  );\n');
-    }
+    s.write('$returnClose);\n');
     s.write('}\n');
 
     // -----------------

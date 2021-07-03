@@ -1,4 +1,5 @@
 import 'package:ffigen/src/code_generator/binding.dart';
+import 'package:ffigen/src/code_generator/type.dart';
 import 'package:ffigen/src/code_generator/utils.dart';
 import 'package:ffigen/src/code_generator/writer.dart';
 
@@ -8,6 +9,10 @@ class WasmJsWriter extends Writer {
   late String _dartConvert;
   late String _dartTyped;
   late String _wasmInterop;
+  late String _opaqueClass;
+
+  @override
+  String get ffiLibraryPrefix => '';
 
   WasmJsWriter({
     required List<Binding> lookUpBindings,
@@ -45,6 +50,11 @@ class WasmJsWriter extends Writer {
     );
     _wasmInterop = _resolveNameConflict(
       name: 'wasm_interop',
+      makeUnique: initialTopLevelUniqueNamer,
+      markUsed: [initialTopLevelUniqueNamer],
+    );
+    _opaqueClass = _resolveNameConflict(
+      name: 'Opaque',
       makeUnique: initialTopLevelUniqueNamer,
       markUsed: [initialTopLevelUniqueNamer],
     );
@@ -132,6 +142,38 @@ class WasmJsWriter extends Writer {
       s.write('}\n\n');
     }
 
+    writePointerAndOpaque(s);
+    writeBuiltInNatives(s);
     return s.toString();
+  }
+
+  void writePointerAndOpaque(StringBuffer s) {
+    s.writeln('// Base for Native Types and Opaque Structs');
+    s.writeln('class $_opaqueClass {');
+    s.writeln('  final int _address;');
+    s.writeln('  int get address => _address;');
+    s.writeln('  $_opaqueClass(this._address);');
+    s.writeln('}\n');
+
+    s.writeln('// FFI Pointer Replacement');
+    s.writeln('class Pointer<T extends $_opaqueClass> {');
+    s.writeln('  final T _opaque;');
+    s.writeln('  Pointer._(this._opaque);');
+    s.writeln('  factory Pointer.fromAddress(T opaque) {');
+    s.writeln('    return Pointer._(opaque);');
+    s.writeln('  }');
+    s.writeln('  int get address => _opaque.address;');
+    s.writeln('}');
+  }
+
+  void writeBuiltInNatives(StringBuffer s) {
+    s.writeln('// Dart FFI Native Types');
+
+    final uniquePrims = Type.primitives.values.map((x) => x.c).toSet();
+    for (final prim in uniquePrims) {
+      s.writeln('class $prim extends $_opaqueClass {');
+      s.writeln('  $prim(int address): super(address);');
+      s.writeln('}');
+    }
   }
 }

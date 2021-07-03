@@ -9,7 +9,9 @@ extension WasmJsType on Type {
   String getWasmJsDartType(Writer w) {
     switch (broadType) {
       case BroadType.NativeType:
+        return getDartType(w);
       case BroadType.Pointer:
+        return 'Pointer<${child!.getWasmJsCType(w)}>';
       case BroadType.Compound:
       case BroadType.Enum:
       case BroadType.NativeFunction:
@@ -27,6 +29,7 @@ extension WasmJsType on Type {
   String getWasmJsLookupDartType(Writer w) {
     switch (broadType) {
       case BroadType.NativeType:
+        return getDartType(w);
       case BroadType.Pointer:
         return Type.nativeType(SupportedNativeType.Int32).getDartType(w);
       case BroadType.Compound:
@@ -40,6 +43,99 @@ extension WasmJsType on Type {
       case BroadType.Typealias:
       case BroadType.Unimplemented:
         return getDartType(w);
+    }
+  }
+
+  String getWasmJsCType(Writer w) {
+    switch (broadType) {
+      case BroadType.NativeType:
+        return Type.primitives[nativeType!]!.c;
+      case BroadType.Pointer:
+        return 'Pointer<${child!.getWasmJsCType(w)}>';
+      case BroadType.Compound:
+        return compound!.name;
+      case BroadType.Enum:
+        return Type.primitives[Type.enumNativeType]!.c;
+      case BroadType.NativeFunction:
+        return 'NativeFunction<${nativeFunc!.type.getWasmJsCType(w)}>';
+      case BroadType
+          .IncompleteArray: // Array parameters are treated as Pointers in C.
+        return 'Pointer<${child!.getWasmJsCType(w)}>';
+      case BroadType
+          .ConstantArray: // Array parameters are treated as Pointers in C.
+        return 'Pointer<${child!.getWasmJsCType(w)}>';
+      case BroadType.Boolean: // Booleans are treated as uint8.
+        return Type.primitives[SupportedNativeType.Uint8]!.c;
+      case BroadType.Handle:
+        return 'Handle';
+      case BroadType.FunctionType:
+        // TODO(thlorenz): override this?
+        return functionType!.getCType(w);
+      case BroadType.Typealias:
+        return typealias!.name;
+      case BroadType.Unimplemented:
+        throw UnimplementedError('C type unknown for ${broadType.toString()}');
+    }
+  }
+
+  String getWasmJsParameterResolution(Writer w) {
+    switch (broadType) {
+      case BroadType.Pointer:
+        return '.address';
+      case BroadType.NativeType:
+      case BroadType.Compound:
+      case BroadType.Enum:
+      case BroadType.NativeFunction:
+      case BroadType.IncompleteArray:
+      case BroadType.ConstantArray:
+        return '';
+      case BroadType.Boolean:
+        return w.dartBool ? '? 1 : 0' : '';
+      case BroadType.Handle:
+      case BroadType.FunctionType:
+      case BroadType.Typealias:
+      case BroadType.Unimplemented:
+        return '';
+    }
+  }
+
+  String getWasmJsReturnWrapOpen(Writer w) {
+    switch (broadType) {
+      case BroadType.Pointer:
+        return 'Pointer.fromAddress(${child!.getWasmJsCType(w)}(';
+      case BroadType.NativeType:
+      case BroadType.Compound:
+      case BroadType.Enum:
+      case BroadType.NativeFunction:
+      case BroadType.IncompleteArray:
+      case BroadType.ConstantArray:
+      case BroadType.Boolean:
+      case BroadType.Handle:
+      case BroadType.FunctionType:
+      case BroadType.Typealias:
+      case BroadType.Unimplemented:
+        return '';
+    }
+  }
+
+  String getWasmJsReturnWrapClose(Writer w) {
+    switch (broadType) {
+      case BroadType.Pointer:
+        return '),),';
+      case BroadType.NativeType:
+      case BroadType.Compound:
+      case BroadType.Enum:
+      case BroadType.NativeFunction:
+      case BroadType.IncompleteArray:
+      case BroadType.ConstantArray:
+        return '';
+      case BroadType.Boolean:
+        return w.dartBool ? ' != 0' : '';
+      case BroadType.Handle:
+      case BroadType.FunctionType:
+      case BroadType.Typealias:
+      case BroadType.Unimplemented:
+        return '';
     }
   }
 }

@@ -60,7 +60,7 @@ enum BroadType {
 
 /// Type class for return types, variable types, etc.
 class Type {
-  static const _primitives = <SupportedNativeType, _SubType>{
+  static const primitives = <SupportedNativeType, _SubType>{
     SupportedNativeType.Void: _SubType(c: 'Void', dart: 'void'),
     SupportedNativeType.Char: _SubType(c: 'Uint8', dart: 'int'),
     SupportedNativeType.Int8: _SubType(c: 'Int8', dart: 'int'),
@@ -251,13 +251,13 @@ class Type {
   String getCType(Writer w) {
     switch (broadType) {
       case BroadType.NativeType:
-        return '${w.ffiLibraryPrefix}.${_primitives[nativeType!]!.c}';
+        return '${w.ffiLibraryPrefix}.${primitives[nativeType!]!.c}';
       case BroadType.Pointer:
         return '${w.ffiLibraryPrefix}.Pointer<${child!.getCType(w)}>';
       case BroadType.Compound:
         return compound!.name;
       case BroadType.Enum:
-        return '${w.ffiLibraryPrefix}.${_primitives[enumNativeType]!.c}';
+        return '${w.ffiLibraryPrefix}.${primitives[enumNativeType]!.c}';
       case BroadType.NativeFunction:
         return '${w.ffiLibraryPrefix}.NativeFunction<${nativeFunc!.type.getCType(w)}>';
       case BroadType
@@ -267,7 +267,7 @@ class Type {
           .ConstantArray: // Array parameters are treated as Pointers in C.
         return '${w.ffiLibraryPrefix}.Pointer<${child!.getCType(w)}>';
       case BroadType.Boolean: // Booleans are treated as uint8.
-        return '${w.ffiLibraryPrefix}.${_primitives[SupportedNativeType.Uint8]!.c}';
+        return '${w.ffiLibraryPrefix}.${primitives[SupportedNativeType.Uint8]!.c}';
       case BroadType.Handle:
         return '${w.ffiLibraryPrefix}.Handle';
       case BroadType.FunctionType:
@@ -282,13 +282,13 @@ class Type {
   String getDartType(Writer w) {
     switch (broadType) {
       case BroadType.NativeType:
-        return _primitives[nativeType!]!.dart;
+        return primitives[nativeType!]!.dart;
       case BroadType.Pointer:
         return '${w.ffiLibraryPrefix}.Pointer<${child!.getCType(w)}>';
       case BroadType.Compound:
         return compound!.name;
       case BroadType.Enum:
-        return _primitives[enumNativeType]!.dart;
+        return primitives[enumNativeType]!.dart;
       case BroadType.NativeFunction:
         return '${w.ffiLibraryPrefix}.NativeFunction<${nativeFunc!.type.getDartType(w)}>';
       case BroadType
@@ -298,7 +298,7 @@ class Type {
           .ConstantArray: // Array parameters are treated as Pointers in C.
         return '${w.ffiLibraryPrefix}.Pointer<${child!.getCType(w)}>';
       case BroadType.Boolean: // Booleans are treated as uint8.
-        return _primitives[SupportedNativeType.Uint8]!.dart;
+        return primitives[SupportedNativeType.Uint8]!.dart;
       case BroadType.Handle:
         return 'Object';
       case BroadType.FunctionType:
