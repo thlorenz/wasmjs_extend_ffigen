@@ -29,9 +29,15 @@ WasmJsLibrary wasmJsParse(Config c) {
 }
 
 List<Binding> mapToWasmJs(List<Binding> bindings) {
-  return bindings.map((b) {
-    if (b is Func) return WasmJsFunc(b);
-    if (b is Struc) return WasmJsStruc(b);
-    return b;
-  }).toList();
+  return bindings
+      // Ignoring all 'stdint.h' structs + constants prefixed with '_' that are usually not used
+      // and end up as private properties inside the generated file anyways
+      .where((Binding b) => !b.originalName.startsWith('_'))
+      .map(
+    (Binding b) {
+      if (b is Func) return WasmJsFunc(b);
+      if (b is Struc) return WasmJsStruc(b);
+      return b;
+    },
+  ).toList();
 }
