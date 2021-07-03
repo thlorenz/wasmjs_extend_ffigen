@@ -36,12 +36,10 @@ extension WasmJsType on Type {
     }
   }
 
-  String getWasmJsLookupDartType(Writer w) {
+  String getWasmJsLookupDartType(WasmJsWriter w) {
     switch (broadType) {
       case BroadType.NativeType:
-        return isJsBigInt(nativeType!)
-            ? '/* JsBigInt */ String'
-            : getDartType(w);
+        return isJsBigInt(nativeType!) ? w.jsBigInt : getDartType(w);
       case BroadType.Pointer:
         return Type.nativeType(SupportedNativeType.Int32).getDartType(w);
       case BroadType.Compound:
