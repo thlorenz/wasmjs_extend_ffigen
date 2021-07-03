@@ -4,6 +4,7 @@ import 'package:ffigen/src/code_generator/utils.dart';
 import 'package:ffigen/src/code_generator/writer.dart';
 
 import 'wasmjs_type.dart';
+import 'wasmjs_writer.dart';
 
 class WasmJsFunc extends LookUpBinding {
   final Func _func;
@@ -36,7 +37,14 @@ class WasmJsFunc extends LookUpBinding {
   }
 
   @override
-  BindingString toBindingString(Writer w) {
+  // ignore: avoid_renaming_method_parameters
+  BindingString toBindingString(Writer writer) {
+    assert(
+      writer is WasmJsWriter,
+      'WasmJsFunc should only be used with WasmJsWriter',
+    );
+
+    final w = writer as WasmJsWriter;
     final s = StringBuffer();
     final enclosingFuncName = name;
     final funcVarName = w.wrapperLevelUniqueNamer.makeUnique('_$name');

@@ -5,6 +5,16 @@ import 'package:ffigen/src/code_generator/writer.dart';
 
 import 'wasmjs_writer.dart';
 
+bool isJsBigInt(SupportedNativeType nativeType) {
+  switch (nativeType) {
+    case SupportedNativeType.Int64:
+    case SupportedNativeType.Uint64:
+      return true;
+    default:
+      return false;
+  }
+}
+
 extension WasmJsType on Type {
   String getWasmJsDartType(Writer w) {
     switch (broadType) {
@@ -29,7 +39,9 @@ extension WasmJsType on Type {
   String getWasmJsLookupDartType(Writer w) {
     switch (broadType) {
       case BroadType.NativeType:
-        return getDartType(w);
+        return isJsBigInt(nativeType!)
+            ? '/* JsBigInt */ String'
+            : getDartType(w);
       case BroadType.Pointer:
         return Type.nativeType(SupportedNativeType.Int32).getDartType(w);
       case BroadType.Compound:
@@ -83,6 +95,7 @@ extension WasmJsType on Type {
       case BroadType.Pointer:
         return '.address';
       case BroadType.NativeType:
+        return isJsBigInt(nativeType!) ? '.toString()' : '';
       case BroadType.Compound:
       case BroadType.Enum:
       case BroadType.NativeFunction:
@@ -99,11 +112,12 @@ extension WasmJsType on Type {
     }
   }
 
-  String getWasmJsReturnWrapOpen(Writer w) {
+  String getWasmJsReturnWrapOpen(WasmJsWriter w) {
     switch (broadType) {
       case BroadType.Pointer:
         return 'Pointer.fromAddress(${child!.getWasmJsCType(w)}(';
       case BroadType.NativeType:
+        return isJsBigInt(nativeType!) ? '${w.jsBigIntToInt}(' : '';
       case BroadType.Compound:
       case BroadType.Enum:
       case BroadType.NativeFunction:
@@ -123,6 +137,7 @@ extension WasmJsType on Type {
       case BroadType.Pointer:
         return '),),';
       case BroadType.NativeType:
+        return isJsBigInt(nativeType!) ? '),' : '';
       case BroadType.Compound:
       case BroadType.Enum:
       case BroadType.NativeFunction:

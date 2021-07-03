@@ -10,9 +10,12 @@ class WasmJsWriter extends Writer {
   late String _dartTyped;
   late String _wasmInterop;
   late String _opaqueClass;
+  late String _jsBigIntToInt;
 
   @override
   String get ffiLibraryPrefix => '';
+
+  String get jsBigIntToInt => _jsBigIntToInt;
 
   WasmJsWriter({
     required List<Binding> lookUpBindings,
@@ -55,6 +58,11 @@ class WasmJsWriter extends Writer {
     );
     _opaqueClass = _resolveNameConflict(
       name: 'Opaque',
+      makeUnique: initialTopLevelUniqueNamer,
+      markUsed: [initialTopLevelUniqueNamer],
+    );
+    _jsBigIntToInt = _resolveNameConflict(
+      name: 'jsBigIntToInt',
       makeUnique: initialTopLevelUniqueNamer,
       markUsed: [initialTopLevelUniqueNamer],
     );
@@ -151,6 +159,7 @@ class WasmJsWriter extends Writer {
 
     writePointerAndOpaque(s);
     writeBuiltInNatives(s);
+    writeJsBigIntConverter(s);
     return s.toString();
   }
 
@@ -182,5 +191,20 @@ class WasmJsWriter extends Writer {
       s.writeln('  $prim(int address): super(address);');
       s.writeln('}');
     }
+  }
+
+  void writeJsBigIntConverter(StringBuffer s) {
+    s.writeln('// Only reliable way I found to convert JS BigInt to int.');
+    s.writeln('// It is used to convert uint64_t and int64_t.');
+    s.writeln(
+        '// Dart int is 64bit (signed). A u64 will not fit if it is larger than max i64.');
+    s.writeln('// However in most scenarios we will not hit this max value.');
+    s.writeln('//   Max u64 is 18,446,744,073,709,551,615');
+    s.writeln('//   Max i64 is  9,223,372,036,854,775,807');
+    s.writeln(
+        '// Thus we take a shortcut to avoid having to deal with Dart BigInt.');
+    s.writeln('int $_jsBigIntToInt(/* JSBigInt */ String n) {');
+    s.writeln('  return int.parse(n);');
+    s.writeln('}');
   }
 }
