@@ -89,6 +89,9 @@ class WasmJsWriter extends Writer {
     // Reset unique names to initial state.
     resetUniqueNamersNamers();
 
+    s.writeln(
+        '// ignore_for_file: non_constant_identifier_names, unused_import, camel_case_types\n');
+
     // Write file header (if any).
     if (header != null) {
       s.write(header);
@@ -122,11 +125,12 @@ class WasmJsWriter extends Writer {
 
     // Instance field and constructor
     s.write('final $_wasmInterop.Instance $_wasmInstance;\n');
-    s.write('$className(this._wasmInstance);\n');
+    s.write('$className(this._wasmInstance);\n\n');
 
     // Function declarations
     if (lookUpBindings.isNotEmpty) {
       for (final b in lookUpBindings) {
+        s.writeln('\n  // --- ${b.name} ---');
         s.write(b.toBindingString(this).string);
       }
     }
